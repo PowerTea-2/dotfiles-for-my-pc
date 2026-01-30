@@ -1,0 +1,38 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 10,
+    "fixed-center": true,
+
+    "modules-left": ["hyprland/workspaces"],
+    "modules-center": ["custom/arch"],
+    "modules-right": ["pulseaudio", "network"],
+
+    "custom/arch": {
+        "format": "",
+        "tooltip": false,
+        "on-click": "~/.config/waybar/scripts/arch-power-menu.sh"
+    },
+
+    "hyprland/workspaces": {
+        "format": "{id}",
+        "on-click": "activate"
+    },
+
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "󰝟",
+        "format-icons": {
+            "default": ["", "", ""]
+        },
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    },
+
+    "network": {
+        "format-wifi": " {essid}",
+        "format-ethernet": "󰈀",
+        "on-click": "nm-connection-editor"
+    }
+}

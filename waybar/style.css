@@ -1,0 +1,47 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(10, 10, 10, 0.95); /* dark grey see-through */
+    color: #ffffff;
+}
+
+/* Centered Arch Logo */
+#custom-arch {
+    font-size: 20px;
+    color: #ffffff;
+    padding: 0 10px;
+}
+
+/* Pulseaudio and Network */
+#pulseaudio, #network {
+    padding: 0 12px;
+    background: #2a2a2a;
+    margin: 4px 2px;
+    border-radius: 10px;
+    color: #ffffff;
+}
+
+/* Workspaces: no boxes, underline active */
+#workspaces {
+    background: transparent;
+    margin: 0 6px;
+    padding: 0;
+}
+#workspaces button {
+    padding: 0 8px;
+    color: #888888;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin-right: 6px;
+}
+#workspaces button.active {
+    color: #ffffff;
+    text-decoration: underline;
+}

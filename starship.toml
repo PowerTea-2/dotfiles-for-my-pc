@@ -1,0 +1,126 @@
+"$schema" = "https://starship.rs/config-schema.json"
+
+format = """
+[](fg:g1)\
+$os\
+$username\
+[](bg:g2 fg:g1)\
+$directory\
+[](bg:g3 fg:g2)\
+$git_branch\
+$git_status\
+[](bg:g4 fg:g3)\
+$nodejs\
+$python\
+$rust\
+$golang\
+$php\
+[](bg:g5 fg:g4)\
+$cmd_duration\
+[](fg:g5)\
+$line_break\
+$character
+"""
+
+palette = "mono"
+
+# ─── OS ────────────────────────────────────────────────
+[os]
+disabled = false
+style = "bg:g1 fg:t2"
+
+[os.symbols]
+Arch = "󰣇"
+Linux = "󰌽"
+Ubuntu = "󰕈"
+
+# ─── USER ──────────────────────────────────────────────
+[username]
+show_always = true
+style_user = "bg:g1 fg:t2 bold"
+style_root = "bg:g1 fg:red bold"
+format = "[ $user ]($style)"
+
+# ─── DIRECTORY ─────────────────────────────────────────
+[directory]
+style = "bg:g2 fg:t2 bold"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+# ─── GIT ───────────────────────────────────────────────
+[git_branch]
+symbol = ""
+style = "bg:g3 fg:t1"
+format = "[ $branch ]($style)"
+
+[git_status]
+style = "bg:g3 fg:t1"
+format = "[ $all_status$ahead_behind ]($style)"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕"
+untracked = "?"
+stashed = "$"
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+
+# ─── LANGUAGES ─────────────────────────────────────────
+[nodejs]
+symbol = ""
+style = "bg:g4 fg:t1"
+format = "[ $version ]($style)"
+
+[python]
+symbol = ""
+style = "bg:g4 fg:t1"
+format = "[ $version ]($style)"
+
+[rust]
+symbol = ""
+style = "bg:g4 fg:t1"
+format = "[ $version ]($style)"
+
+[golang]
+symbol = ""
+style = "bg:g4 fg:t1"
+format = "[ $version ]($style)"
+
+[php]
+symbol = ""
+style = "bg:g4 fg:t1"
+format = "[ $version ]($style)"
+
+# ─── CMD DURATION ──────────────────────────────────────
+[cmd_duration]
+min_time = 500
+show_milliseconds = true
+style = "bg:g5 fg:white bold"
+format = "[ $duration ]($style)"
+
+# ─── PROMPT END ────────────────────────────────────────
+[line_break]
+disabled = false
+
+[character]
+success_symbol = "[❯](fg:white bold)"
+error_symbol   = "[❯](fg:red bold)"
+
+# ─── PALETTE ───────────────────────────────────────────
+[palettes.mono]
+# backgrounds (left → right)
+g1 = "#141414"  # almost black
+g2 = "#1c1c1c"
+g3 = "#262626"
+g4 = "#303030"
+g5 = "#3a3a3a"
+
+# text tones
+t1 = "#d0d0d0"
+t2 = "#e6e6e6"
+white = "#ffffff"
+
+# semantic color (minimal use)
+red = "#ff6b6b"
