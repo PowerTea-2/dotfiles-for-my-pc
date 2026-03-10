@@ -1,5 +1,8 @@
 "$schema" = "https://starship.rs/config-schema.json"
 
+scan_timeout = 30
+command_timeout = 500
+
 format = """
 [](fg:g1)\
 $os\
@@ -27,10 +30,10 @@ palette = "mono"
 # ─── OS ────────────────────────────────────────────────
 [os]
 disabled = false
-style = "bg:g1 fg:t2"
+style = "bg:g1 fg:t1"
 
 [os.symbols]
-Arch = "󰣇"
+Arch = ""
 Linux = "󰌽"
 Ubuntu = "󰕈"
 
@@ -60,38 +63,46 @@ format = "[ $all_status$ahead_behind ]($style)"
 ahead = "⇡${count}"
 behind = "⇣${count}"
 diverged = "⇕"
-untracked = "?"
+untracked = ""
 stashed = "$"
 modified = "!"
 staged = "+"
 renamed = "»"
 deleted = "✘"
-
+ignore_submodules = true
 # ─── LANGUAGES ─────────────────────────────────────────
 [nodejs]
 symbol = ""
 style = "bg:g4 fg:t1"
 format = "[ $version ]($style)"
+detect_files = ["package.json", "node_modules"] # Only runs if these exist
+detect_extensions = ["js", "ts"]
 
 [python]
 symbol = ""
 style = "bg:g4 fg:t1"
 format = "[ $version ]($style)"
+detect_extensions = ["py"]
+detect_files = [".python-version", "requirements.txt", "pyproject.toml"]
 
 [rust]
 symbol = ""
 style = "bg:g4 fg:t1"
 format = "[ $version ]($style)"
+detect_files = ["Cargo.toml"]
+detect_extensions = ["rs"]
 
 [golang]
 symbol = ""
 style = "bg:g4 fg:t1"
 format = "[ $version ]($style)"
+detect_files = ["go.mod", "go.sum"]
 
 [php]
 symbol = ""
 style = "bg:g4 fg:t1"
 format = "[ $version ]($style)"
+detect_files = ["composer.json", "index.php"]
 
 # ─── CMD DURATION ──────────────────────────────────────
 [cmd_duration]
@@ -105,7 +116,7 @@ format = "[ $duration ]($style)"
 disabled = false
 
 [character]
-success_symbol = "[❯](fg:white bold)"
+success_symbol = "[❯](fg:t3 bold)"
 error_symbol   = "[❯](fg:red bold)"
 
 # ─── PALETTE ───────────────────────────────────────────
@@ -118,9 +129,12 @@ g4 = "#303030"
 g5 = "#3a3a3a"
 
 # text tones
-t1 = "#d0d0d0"
-t2 = "#e6e6e6"
+t1 = "#ffffff"
+t2 = "#ffffff"
 white = "#ffffff"
-
+t3 = "#303030"
 # semantic color (minimal use)
 red = "#ff6b6b"
+
+
+
