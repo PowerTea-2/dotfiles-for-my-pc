@@ -83,7 +83,7 @@ require("ibl").setup({
         current_line_blame = true,
         current_line_blame_opts = { delay = 300 },
       })
-      vim.api.nvim_set_hl(0, "GitSignsAdd", { fg = "#007A10" })
+      vim.api.nvim_set_hl(0, "GitSignsAdd", { fg = "#5A7D4A" })
       vim.api.nvim_set_hl(0, "GitSignsChange", { fg = "#CC8800" })
       vim.api.nvim_set_hl(0, "GitSignsDelete", { fg = "#FF0000" })
     end,
@@ -97,7 +97,7 @@ require("ibl").setup({
           theme = {
             normal = {
               a = { fg = "#000000", bg = "#CC8800", gui = "bold" },
-              b = { fg = "#007A10", bg = "#1A1A1A" },
+              b = { fg = "#5A7D4A", bg = "#1A1A1A" },
               c = { fg = "#FFFFFF", bg = "#000000" },
             },
           },
@@ -159,22 +159,27 @@ require("ibl").setup({
       vim.keymap.set('n', '<leader>sw', '<cmd>lua require("spectre").open_visual({select_word=true})<CR>', { desc = "Search current word" })
     end,
   },
- {
-  "sphamba/smear-cursor.nvim",
+  {
+  "LuxVim/nvim-luxmotion",
   config = function()
-    require("smear_cursor").setup({
-      enabled = true,
-      stiffness = 1.0,
-      trailing_stiffness = 0.4,
-      trailing_exponent = 0.5,
-      hide_target_hack = true,
-      legacy_computing_symbols_support = false, -- set true if smear looks broken in kitty
-      cursor_color = "#CC8800",
-      time_interval = 8,
+    require("luxmotion").setup({
+      fps = 60,
+      duration = 300,
+      
+      -- Correct format - these are tables with enable option
+      scroll = {
+        enable = true,
+      },
+      cursor = {
+        enable = true,
+      },
+      horizontal = {
+        enable = true,
+      },
     })
   end,
-},
-  {
+  },
+{
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
@@ -213,7 +218,7 @@ vim.keymap.set('n', '<C-a>', 'ggVG')
 -- 4. THE NERV THEME
 local function apply_nerv_theme()
     local orange = "#CC8800"
-    local green  = "#007A10"
+    local green  = "#5A7D4A"
     local purple = "#724D8A"
     local black  = "#000000"
     local white  = "#FFFFFF"
@@ -228,7 +233,6 @@ local function apply_nerv_theme()
     
     -- Selection
     vim.api.nvim_set_hl(0, "Visual", { fg = black, bg = orange, bold = true })
-    vim.api.nvim_set_hl(0, "SmearCursor", { fg = "#CC8800" })
 
     -- Syntax
     vim.api.nvim_set_hl(0, "Keyword", { fg = green, bold = true })
