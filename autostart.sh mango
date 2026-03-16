@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -u
+
+# === ENVIRONMENT (run early) ===
+dbus-update-activation-environment --systemd \
+    WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
+
+systemctl --user import-environment \
+    WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
+
+# === HELPER FUNCTION (for real daemons only) ===
+run() {
+    local pname="$1"; shift
+    if ! pgrep -x "$pname" >/dev/null 2>&1; then
+        nohup "$@" >/dev/null 2>&1 &
+    fi
+}
+
+# === SWWW WALLPAPER (fixed order + tiny delay) ===
+run swww-daemon swww-daemon
+sleep 0.55                    # ← this is the magic line (daemon needs ~0.5s)
+
+swww img "$HOME/Pictures/wallhaven-3qwqld.png" \
+    --transition-type grow \
+    --transition-duration 1.2 \
+    --transition-fps 90 \
+    --transition-pos center
+
+# === REST OF YOUR STUFF ===
+nvibrant 0 150 >/dev/null 2>&1 &
+
+run waybar waybar
+run swaync swaync
+
+systemctl --user start plasma-kio-extras >/dev/null 2>&1 || true
+
+# === IMPORTANT: DELETE THIS WHOLE BLOCK ===
+# (we already use SUPER+P named scratchpad for ncspot)
+# if ! pgrep -f "kitty --title ncspot -e ncspot" >/dev/null 2>&1; then
+#     kitty --title ncspot -e ncspot >/dev/null 2>&1 &
+# fi
