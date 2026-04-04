@@ -1,0 +1,1683 @@
+-- ╭─────────────────────────────────────────────────────────────────────────╮
+-- │              NEOVIM 0.12  ·  VOID VIOLET EDITION                        │
+-- │         #151515 black · pastel violet/pink · pastel red accents          │
+-- ╰─────────────────────────────────────────────────────────────────────────╯
+
+-- ── 1. Loader & disabled builtins ─────────────────────────────────────────────
+
+pcall(vim.loader.enable)
+
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
+-- ── 2. Options ────────────────────────────────────────────────────────────────
+
+local opt = vim.opt
+
+opt.termguicolors = true
+opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus"
+opt.number = true
+opt.relativenumber = false
+opt.signcolumn = "yes"
+opt.guicursor = "n-v-c:block,i:block"
+opt.cursorline = true
+opt.showmode = false
+opt.laststatus = 3
+opt.cmdheight = 0
+opt.updatetime = 250
+opt.timeoutlen = 400
+opt.completeopt = { "menu", "menuone", "noselect" }
+opt.splitright = true
+opt.splitbelow = true
+opt.scrolloff = 8
+opt.sidescrolloff = 8
+opt.swapfile = false
+opt.undofile = true
+opt.ignorecase = true
+opt.smartcase = true
+opt.pumblend = 10
+opt.fillchars = { eob = " ", fold = " ", foldopen = " ", foldclose = " " }
+opt.synmaxcol = 300
+
+-- ── 3. Diagnostics ────────────────────────────────────────────────────────────
+
+vim.diagnostic.config({
+	virtual_text = { prefix = "❯", spacing = 4 },
+	signs = true,
+	underline = true,
+	update_in_insert = false,
+	float = { border = "single", source = "if_many" },
+})
+
+-- ── 4. Keymaps ────────────────────────────────────────────────────────────────
+
+vim.keymap.set("n", "<C-a>", "ggVG", { desc = "Select all" })
+vim.keymap.set("i", "<C-a>", "<Esc>ggVG", { desc = "Select all" })
+
+-- ── 5. Commands ───────────────────────────────────────────────────────────────
+
+vim.api.nvim_create_user_command("MkFile", function()
+	local path = vim.fn.expand("%:p")
+	if path == "" then
+		vim.notify("No filename set — use  :file <path>  first.", vim.log.levels.ERROR)
+		return
+	end
+	local dir = vim.fn.fnamemodify(path, ":h")
+	if vim.fn.isdirectory(dir) == 0 then
+		local ok, err = pcall(vim.fn.mkdir, dir, "p")
+		if not ok then
+			vim.notify("Failed to create directory: " .. (err or dir), vim.log.levels.ERROR)
+			return
+		end
+		vim.notify("Created: " .. dir, vim.log.levels.INFO)
+	end
+	vim.cmd("write")
+end, { desc = "Create missing parent directories and write file" })
+
+-- ── 6. Void Violet Theme ──────────────────────────────────────────────────────
+--
+-- Palette
+-- ─────────────────────────────────────────────────────────────────
+--  Backgrounds (darkest → lightest)
+--    bg        #151515   pure near-black canvas
+--    bg1       #1c1c1c   cursor-line / active row
+--    bg2       #201530   float / popup (dark purple tint)
+--    bg3       #2b1d45   selection, visual, deeper popups
+--    bg4       #180f28   sidebar / tree (deeper than bg2)
+--    border    #4a2d6e   border / separator
+--    sel       #3a2260   visual selection block
+--
+--  Foregrounds
+--    fg        #e8dff5   main text (soft lavender-white)
+--    fg2       #c8b4e8   secondary text (dimmed)
+--    fg3       #8a70aa   tertiary / inactive (very muted)
+--    comment   #6b5080   code comments (dark muted purple)
+--
+--  Violet / Purple family  (primary accent)
+--    violet    #c39bd3   pastel violet  — types, tags
+--    purple    #b388ff   bright violet  — keywords
+--    lavender  #d4b8ff   light lavender — builtins, modules
+--    plum      #c080d8   plum magenta   — operators, special
+--
+--  Pink family  (secondary accent)
+--    pink      #f0a8c8   pastel pink    — functions
+--    rose      #f5b8d0   soft rose      — method calls
+--    magenta   #e888c8   hot magenta    — constructors
+--
+--  Red family  (accent / error / danger)
+--    red       #e88888   pastel red     — errors, delete, exception
+--    crimson   #d45e5e   deeper red     — hard errors
+--    salmon    #f0a090   salmon-red     — string escapes, special chars
+--
+--  Neutral accents  (used sparingly for contrast)
+--    teal      #88c8d8   desaturated teal  — numbers, floats
+--    sage      #9dc89c   sage green        — add / ok / boolean true
+--    amber     #d8b888   warm amber        — warnings / change
+--    gold      #e8d088   soft gold         — constants, macros
+--    sky       #a8c8e8   pale sky          — parameters
+-- ─────────────────────────────────────────────────────────────────
+
+local function apply_theme_overrides()
+	local hl = vim.api.nvim_set_hl
+
+	-- ── Palette ──────────────────────────────────────────────────────────────
+	local bg = "#151515"
+	local bg1 = "#1c1c1c"
+	local bg2 = "#201530"
+	local bg3 = "#2b1d45"
+	local bg4 = "#180f28"
+	local brd = "#4a2d6e"
+	local sel = "#3a2260"
+
+	local fg = "#e8dff5"
+	local fg2 = "#c8b4e8"
+	local fg3 = "#8a70aa"
+	local cmt = "#6b5080"
+
+	local violet = "#c39bd3"
+	local purple = "#b388ff"
+	local lavender = "#d4b8ff"
+	local plum = "#c080d8"
+
+	local pink = "#f0a8c8"
+	local rose = "#f5b8d0"
+	local magenta = "#e888c8"
+
+	local red = "#e88888"
+	local crimson = "#d45e5e"
+	local salmon = "#f0a090"
+
+	local teal = "#88c8d8"
+	local sage = "#9dc89c"
+	local amber = "#d8b888"
+	local gold = "#e8d088"
+	local sky = "#a8c8e8"
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  CORE VIM UI                                                          │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "Normal", { fg = fg, bg = bg })
+	hl(0, "NormalNC", { fg = fg2, bg = bg }) -- inactive windows
+	hl(0, "NormalFloat", { fg = fg, bg = bg2 })
+	hl(0, "FloatBorder", { fg = brd, bg = bg2 })
+	hl(0, "FloatShadow", { bg = "#0d0a14", blend = 60 })
+	hl(0, "FloatShadowThrough", { bg = "#0d0a14", blend = 40 })
+
+	hl(0, "WinSeparator", { fg = brd, bg = bg })
+	hl(0, "VertSplit", { fg = brd, bg = bg })
+
+	-- Cursor & line
+	hl(0, "Cursor", { fg = bg, bg = pink })
+	hl(0, "lCursor", { fg = bg, bg = violet })
+	hl(0, "CursorIM", { fg = bg, bg = rose })
+	hl(0, "CursorLine", { bg = bg1 })
+	hl(0, "CursorColumn", { bg = bg1 })
+	hl(0, "CursorLineNr", { fg = pink, bold = true })
+	hl(0, "LineNr", { fg = cmt })
+	hl(0, "LineNrAbove", { fg = cmt })
+	hl(0, "LineNrBelow", { fg = cmt })
+	hl(0, "SignColumn", { fg = fg3, bg = bg })
+	hl(0, "ColorColumn", { bg = bg2 })
+	hl(0, "FoldColumn", { fg = fg3, bg = bg })
+	hl(0, "Folded", { fg = fg3, bg = bg2, italic = true })
+
+	-- Selection / search
+	hl(0, "Visual", { bg = sel })
+	hl(0, "VisualNOS", { bg = sel, underline = true })
+	hl(0, "Search", { fg = bg, bg = gold })
+	hl(0, "IncSearch", { fg = bg, bg = pink, bold = true })
+	hl(0, "CurSearch", { fg = bg, bg = magenta, bold = true })
+	hl(0, "Substitute", { fg = bg, bg = red, bold = true })
+	hl(0, "MatchParen", { fg = pink, bg = bg3, bold = true, underline = true })
+
+	-- Completion menu
+	hl(0, "Pmenu", { fg = fg2, bg = bg2 })
+	hl(0, "PmenuSel", { fg = bg, bg = purple, bold = true })
+	hl(0, "PmenuSbar", { bg = bg3 })
+	hl(0, "PmenuThumb", { bg = plum })
+	hl(0, "PmenuKind", { fg = violet, bg = bg2 })
+	hl(0, "PmenuKindSel", { fg = bg, bg = purple })
+	hl(0, "PmenuExtra", { fg = fg3, bg = bg2 })
+	hl(0, "PmenuExtraSel", { fg = bg2, bg = purple })
+
+	-- Status, tabline
+	hl(0, "StatusLine", { fg = fg2, bg = bg2 })
+	hl(0, "StatusLineNC", { fg = fg3, bg = bg })
+	hl(0, "StatusLineTerm", { fg = fg, bg = bg2 })
+	hl(0, "StatusLineTermNC", { fg = fg3, bg = bg })
+	hl(0, "TabLine", { fg = fg3, bg = bg2 })
+	hl(0, "TabLineFill", { bg = bg })
+	hl(0, "TabLineSel", { fg = fg, bg = bg3, bold = true })
+
+	-- Messages & prompts
+	hl(0, "MsgArea", { fg = fg2, bg = bg })
+	hl(0, "MsgSeparator", { fg = brd, bg = bg2 })
+	hl(0, "ErrorMsg", { fg = red, bold = true })
+	hl(0, "WarningMsg", { fg = amber })
+	hl(0, "InfoMsg", { fg = teal })
+	hl(0, "Question", { fg = lavender, bold = true })
+	hl(0, "MoreMsg", { fg = sage, bold = true })
+
+	-- Misc UI
+	hl(0, "NonText", { fg = bg3 })
+	hl(0, "SpecialKey", { fg = plum })
+	hl(0, "Whitespace", { fg = bg3 })
+	hl(0, "EndOfBuffer", { fg = bg })
+	hl(0, "Title", { fg = purple, bold = true })
+	hl(0, "Directory", { fg = violet, bold = true })
+	hl(0, "Conceal", { fg = fg3 })
+	hl(0, "WildMenu", { fg = bg, bg = purple, bold = true })
+	hl(0, "QuickFixLine", { fg = pink, bg = bg1, bold = true })
+
+	-- Spell
+	hl(0, "SpellBad", { fg = red, undercurl = true, sp = red })
+	hl(0, "SpellCap", { fg = amber, undercurl = true, sp = amber })
+	hl(0, "SpellRare", { fg = lavender, undercurl = true, sp = lavender })
+	hl(0, "SpellLocal", { fg = teal, undercurl = true, sp = teal })
+
+	-- Diff
+	hl(0, "DiffAdd", { fg = sage, bg = "#0d1f0d" })
+	hl(0, "DiffChange", { fg = amber, bg = "#1f180d" })
+	hl(0, "DiffDelete", { fg = red, bg = "#1f0d0d" })
+	hl(0, "DiffText", { fg = gold, bg = "#2a200a", bold = true })
+	hl(0, "Added", { fg = sage })
+	hl(0, "Changed", { fg = amber })
+	hl(0, "Removed", { fg = red })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  LEGACY SYNTAX GROUPS                                                 │
+	-- │  (used by non-treesitter filetypes, regex highlighting, etc.)         │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "Comment", { fg = cmt, italic = true })
+	hl(0, "SpecialComment", { fg = cmt, italic = true, bold = true })
+
+	-- Constants
+	hl(0, "Constant", { fg = gold })
+	hl(0, "String", { fg = rose })
+	hl(0, "Character", { fg = salmon })
+	hl(0, "Number", { fg = teal })
+	hl(0, "Float", { fg = teal })
+	hl(0, "Boolean", { fg = sage, bold = true })
+
+	-- Identifiers
+	hl(0, "Identifier", { fg = fg2 })
+	hl(0, "Function", { fg = pink, bold = true })
+
+	-- Statements
+	hl(0, "Statement", { fg = purple, bold = true })
+	hl(0, "Conditional", { fg = purple, bold = true })
+	hl(0, "Repeat", { fg = purple, bold = true })
+	hl(0, "Label", { fg = violet })
+	hl(0, "Operator", { fg = plum })
+	hl(0, "Keyword", { fg = purple, bold = true })
+	hl(0, "Exception", { fg = red, bold = true })
+
+	-- Preprocessor
+	hl(0, "PreProc", { fg = lavender })
+	hl(0, "Include", { fg = lavender })
+	hl(0, "Define", { fg = plum })
+	hl(0, "Macro", { fg = gold })
+	hl(0, "PreCondit", { fg = lavender })
+
+	-- Types
+	hl(0, "Type", { fg = violet, bold = true })
+	hl(0, "StorageClass", { fg = purple })
+	hl(0, "Structure", { fg = violet })
+	hl(0, "Typedef", { fg = violet, italic = true })
+
+	-- Specials
+	hl(0, "Special", { fg = magenta })
+	hl(0, "SpecialChar", { fg = salmon })
+	hl(0, "Tag", { fg = pink })
+	hl(0, "Delimiter", { fg = fg3 })
+	hl(0, "Debug", { fg = amber })
+
+	-- Misc
+	hl(0, "Underlined", { underline = true })
+	hl(0, "Bold", { bold = true })
+	hl(0, "Italic", { italic = true })
+	hl(0, "Ignore", { fg = bg3 })
+	hl(0, "Error", { fg = crimson, bold = true, underline = true })
+	hl(0, "Todo", { fg = bg, bg = gold, bold = true })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  TREESITTER — @capture groups                                         │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	-- Comments
+	hl(0, "@comment", { fg = cmt, italic = true })
+	hl(0, "@comment.documentation", { fg = fg3, italic = true })
+	hl(0, "@comment.error", { fg = red, italic = true, bold = true })
+	hl(0, "@comment.warning", { fg = amber, italic = true })
+	hl(0, "@comment.todo", { fg = bg, bg = gold, bold = true })
+	hl(0, "@comment.note", { fg = bg, bg = teal, bold = true })
+
+	-- Keywords
+	hl(0, "@keyword", { fg = purple, bold = true })
+	hl(0, "@keyword.function", { fg = purple, bold = true })
+	hl(0, "@keyword.return", { fg = red, bold = true })
+	hl(0, "@keyword.import", { fg = lavender })
+	hl(0, "@keyword.type", { fg = violet, bold = true })
+	hl(0, "@keyword.modifier", { fg = plum, italic = true })
+	hl(0, "@keyword.repeat", { fg = purple, bold = true })
+	hl(0, "@keyword.conditional", { fg = purple, bold = true })
+	hl(0, "@keyword.conditional.ternary", { fg = plum })
+	hl(0, "@keyword.exception", { fg = red, bold = true })
+	hl(0, "@keyword.operator", { fg = plum, bold = true })
+	hl(0, "@keyword.coroutine", { fg = magenta, bold = true })
+	hl(0, "@keyword.debug", { fg = amber })
+	hl(0, "@keyword.directive", { fg = lavender })
+	hl(0, "@keyword.directive.define", { fg = plum })
+
+	-- Functions
+	hl(0, "@function", { fg = pink, bold = true })
+	hl(0, "@function.call", { fg = pink })
+	hl(0, "@function.builtin", { fg = magenta, bold = true })
+	hl(0, "@function.macro", { fg = gold, bold = true })
+	hl(0, "@function.method", { fg = rose, bold = true })
+	hl(0, "@function.method.call", { fg = rose })
+
+	-- Variables
+	hl(0, "@variable", { fg = fg2 })
+	hl(0, "@variable.builtin", { fg = lavender, italic = true })
+	hl(0, "@variable.parameter", { fg = sky })
+	hl(0, "@variable.parameter.builtin", { fg = sky, italic = true })
+	hl(0, "@variable.member", { fg = fg2 })
+
+	-- Types
+	hl(0, "@type", { fg = violet, bold = true })
+	hl(0, "@type.builtin", { fg = lavender, bold = true })
+	hl(0, "@type.definition", { fg = violet, italic = true })
+	hl(0, "@type.qualifier", { fg = plum, italic = true })
+
+	-- Constants
+	hl(0, "@constant", { fg = gold })
+	hl(0, "@constant.builtin", { fg = gold, bold = true })
+	hl(0, "@constant.macro", { fg = amber })
+
+	-- Strings
+	hl(0, "@string", { fg = rose })
+	hl(0, "@string.documentation", { fg = fg3, italic = true })
+	hl(0, "@string.escape", { fg = salmon, bold = true })
+	hl(0, "@string.special", { fg = salmon })
+	hl(0, "@string.special.symbol", { fg = magenta })
+	hl(0, "@string.special.url", { fg = teal, underline = true })
+	hl(0, "@string.special.path", { fg = violet })
+	hl(0, "@string.regexp", { fg = salmon, italic = true })
+
+	-- Numbers & booleans
+	hl(0, "@number", { fg = teal })
+	hl(0, "@number.float", { fg = teal, italic = true })
+	hl(0, "@boolean", { fg = sage, bold = true })
+	hl(0, "@character", { fg = salmon })
+	hl(0, "@character.special", { fg = salmon, bold = true })
+
+	-- Operators & punctuation
+	hl(0, "@operator", { fg = plum })
+	hl(0, "@punctuation.delimiter", { fg = fg3 })
+	hl(0, "@punctuation.bracket", { fg = fg3 })
+	hl(0, "@punctuation.special", { fg = plum })
+
+	-- Attributes, labels, namespaces
+	hl(0, "@attribute", { fg = gold, italic = true })
+	hl(0, "@attribute.builtin", { fg = amber, italic = true })
+	hl(0, "@label", { fg = violet })
+	hl(0, "@namespace", { fg = lavender })
+	hl(0, "@module", { fg = lavender })
+	hl(0, "@module.builtin", { fg = lavender, bold = true })
+
+	-- Constructors & properties
+	hl(0, "@constructor", { fg = magenta, bold = true })
+	hl(0, "@property", { fg = fg2 })
+
+	-- Parameters (alias for older configs)
+	hl(0, "@parameter", { fg = sky })
+	hl(0, "@field", { fg = fg2 })
+
+	-- HTML / JSX Tags
+	hl(0, "@tag", { fg = violet, bold = true })
+	hl(0, "@tag.attribute", { fg = sky })
+	hl(0, "@tag.delimiter", { fg = fg3 })
+	hl(0, "@tag.builtin", { fg = lavender, bold = true })
+
+	-- Markup (markdown, etc.)
+	hl(0, "@markup.heading", { fg = purple, bold = true })
+	hl(0, "@markup.heading.1", { fg = purple, bold = true })
+	hl(0, "@markup.heading.2", { fg = violet, bold = true })
+	hl(0, "@markup.heading.3", { fg = pink, bold = true })
+	hl(0, "@markup.heading.4", { fg = rose, bold = true })
+	hl(0, "@markup.heading.5", { fg = lavender, bold = true })
+	hl(0, "@markup.heading.6", { fg = fg2, bold = true })
+	hl(0, "@markup.bold", { bold = true })
+	hl(0, "@markup.italic", { italic = true })
+	hl(0, "@markup.strikethrough", { strikethrough = true, fg = fg3 })
+	hl(0, "@markup.underline", { underline = true })
+	hl(0, "@markup.link", { fg = teal, underline = true })
+	hl(0, "@markup.link.label", { fg = violet })
+	hl(0, "@markup.link.url", { fg = teal, underline = true })
+	hl(0, "@markup.list", { fg = plum })
+	hl(0, "@markup.list.checked", { fg = sage })
+	hl(0, "@markup.list.unchecked", { fg = fg3 })
+	hl(0, "@markup.raw", { fg = rose, bg = bg2 })
+	hl(0, "@markup.raw.block", { fg = rose, bg = bg2 })
+	hl(0, "@markup.raw.inline", { fg = salmon, bg = bg2 })
+	hl(0, "@markup.quote", { fg = fg3, italic = true, bg = bg2 })
+	hl(0, "@markup.math", { fg = gold })
+	hl(0, "@markup.environment", { fg = plum })
+
+	-- Diffs (treesitter)
+	hl(0, "@diff.plus", { fg = sage })
+	hl(0, "@diff.minus", { fg = red })
+	hl(0, "@diff.delta", { fg = amber })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  LSP SEMANTIC TOKENS  (@lsp.type.*)                                   │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "@lsp.type.class", { fg = violet, bold = true })
+	hl(0, "@lsp.type.comment", { fg = cmt, italic = true })
+	hl(0, "@lsp.type.decorator", { fg = gold, italic = true })
+	hl(0, "@lsp.type.enum", { fg = violet })
+	hl(0, "@lsp.type.enumMember", { fg = gold })
+	hl(0, "@lsp.type.event", { fg = magenta })
+	hl(0, "@lsp.type.function", { fg = pink, bold = true })
+	hl(0, "@lsp.type.interface", { fg = lavender, bold = true })
+	hl(0, "@lsp.type.keyword", { fg = purple, bold = true })
+	hl(0, "@lsp.type.macro", { fg = gold, bold = true })
+	hl(0, "@lsp.type.method", { fg = rose, bold = true })
+	hl(0, "@lsp.type.modifier", { fg = plum, italic = true })
+	hl(0, "@lsp.type.namespace", { fg = lavender })
+	hl(0, "@lsp.type.number", { fg = teal })
+	hl(0, "@lsp.type.operator", { fg = plum })
+	hl(0, "@lsp.type.parameter", { fg = sky })
+	hl(0, "@lsp.type.property", { fg = fg2 })
+	hl(0, "@lsp.type.regexp", { fg = salmon, italic = true })
+	hl(0, "@lsp.type.string", { fg = rose })
+	hl(0, "@lsp.type.struct", { fg = violet, bold = true })
+	hl(0, "@lsp.type.type", { fg = violet, bold = true })
+	hl(0, "@lsp.type.typeParameter", { fg = sky, italic = true })
+	hl(0, "@lsp.type.variable", { fg = fg2 })
+	hl(0, "@lsp.mod.documentation", { italic = true })
+	hl(0, "@lsp.mod.defaultLibrary", { fg = lavender })
+	hl(0, "@lsp.mod.deprecated", { strikethrough = true })
+	hl(0, "@lsp.mod.readonly", { fg = gold })
+	hl(0, "@lsp.mod.static", { fg = plum, italic = true })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  DIAGNOSTICS                                                          │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "DiagnosticError", { fg = red })
+	hl(0, "DiagnosticWarn", { fg = amber })
+	hl(0, "DiagnosticInfo", { fg = teal })
+	hl(0, "DiagnosticHint", { fg = violet })
+	hl(0, "DiagnosticOk", { fg = sage })
+
+	hl(0, "DiagnosticSignError", { fg = red, bold = true })
+	hl(0, "DiagnosticSignWarn", { fg = amber })
+	hl(0, "DiagnosticSignInfo", { fg = teal })
+	hl(0, "DiagnosticSignHint", { fg = violet })
+
+	hl(0, "DiagnosticVirtualTextError", { fg = crimson, italic = true })
+	hl(0, "DiagnosticVirtualTextWarn", { fg = amber, italic = true })
+	hl(0, "DiagnosticVirtualTextInfo", { fg = teal, italic = true })
+	hl(0, "DiagnosticVirtualTextHint", { fg = fg3, italic = true })
+
+	hl(0, "DiagnosticUnderlineError", { sp = red, undercurl = true })
+	hl(0, "DiagnosticUnderlineWarn", { sp = amber, undercurl = true })
+	hl(0, "DiagnosticUnderlineInfo", { sp = teal, undercurl = true })
+	hl(0, "DiagnosticUnderlineHint", { sp = violet, undercurl = true })
+
+	hl(0, "DiagnosticFloatingError", { fg = red, bg = bg2 })
+	hl(0, "DiagnosticFloatingWarn", { fg = amber, bg = bg2 })
+	hl(0, "DiagnosticFloatingInfo", { fg = teal, bg = bg2 })
+	hl(0, "DiagnosticFloatingHint", { fg = violet, bg = bg2 })
+
+	-- LSP
+	hl(0, "LspInlayHint", { fg = cmt, italic = true, bg = bg1 })
+	hl(0, "LspReferenceText", { bg = bg3 })
+	hl(0, "LspReferenceRead", { bg = bg3 })
+	hl(0, "LspReferenceWrite", { bg = bg3, underline = true })
+	hl(0, "LspSignatureActiveParameter", { fg = pink, bold = true, underline = true })
+	hl(0, "LspCodeLens", { fg = fg3, italic = true })
+	hl(0, "LspCodeLensSeparator", { fg = brd })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  GIT SIGNS                                                            │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "GitSignsAdd", { fg = sage })
+	hl(0, "GitSignsChange", { fg = amber })
+	hl(0, "GitSignsDelete", { fg = red })
+	hl(0, "GitSignsTopdelete", { fg = crimson })
+	hl(0, "GitSignsChangedelete", { fg = amber })
+	hl(0, "GitSignsUntracked", { fg = fg3 })
+	hl(0, "GitSignsAddNr", { fg = sage })
+	hl(0, "GitSignsChangeNr", { fg = amber })
+	hl(0, "GitSignsDeleteNr", { fg = red })
+	hl(0, "GitSignsAddLn", { bg = "#0d1f0d" })
+	hl(0, "GitSignsChangeLn", { bg = "#1f180d" })
+	hl(0, "GitSignsDeleteLn", { bg = "#1f0d0d" })
+	hl(0, "GitSignsCurrentLineBlame", { fg = cmt, italic = true })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  TELESCOPE                                                            │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "TelescopeNormal", { fg = fg, bg = bg })
+	hl(0, "TelescopePromptNormal", { fg = fg, bg = bg2 })
+	hl(0, "TelescopeResultsNormal", { fg = fg2, bg = bg })
+	hl(0, "TelescopePreviewNormal", { fg = fg2, bg = bg })
+	hl(0, "TelescopeBorder", { fg = brd, bg = bg })
+	hl(0, "TelescopePromptBorder", { fg = pink, bg = bg2 })
+	hl(0, "TelescopeResultsBorder", { fg = brd, bg = bg })
+	hl(0, "TelescopePreviewBorder", { fg = brd, bg = bg })
+	hl(0, "TelescopeTitle", { fg = bg, bg = purple, bold = true })
+	hl(0, "TelescopePromptTitle", { fg = bg, bg = pink, bold = true })
+	hl(0, "TelescopeResultsTitle", { fg = bg, bg = brd, bold = true })
+	hl(0, "TelescopePreviewTitle", { fg = bg, bg = violet, bold = true })
+	hl(0, "TelescopePromptPrefix", { fg = pink })
+	hl(0, "TelescopePromptCounter", { fg = fg3 })
+	hl(0, "TelescopeSelection", { fg = fg, bg = bg3 })
+	hl(0, "TelescopeSelectionCaret", { fg = pink, bold = true })
+	hl(0, "TelescopeMultiSelection", { fg = violet, bg = bg3 })
+	hl(0, "TelescopeMultiIcon", { fg = plum })
+	hl(0, "TelescopeMatching", { fg = gold, bold = true })
+	hl(0, "TelescopeResultsDiffAdd", { fg = sage })
+	hl(0, "TelescopeResultsDiffChange", { fg = amber })
+	hl(0, "TelescopeResultsDiffDelete", { fg = red })
+	hl(0, "TelescopeResultsDiffUntracked", { fg = fg3 })
+	hl(0, "TelescopeResultsComment", { fg = cmt, italic = true })
+	hl(0, "TelescopeResultsIdentifier", { fg = fg2 })
+	hl(0, "TelescopeResultsNumber", { fg = teal })
+	hl(0, "TelescopeResultsString", { fg = rose })
+	hl(0, "TelescopeResultsFunction", { fg = pink })
+	hl(0, "TelescopeResultsMethod", { fg = rose })
+	hl(0, "TelescopeResultsOperator", { fg = plum })
+	hl(0, "TelescopeResultsClass", { fg = violet })
+	hl(0, "TelescopeResultsField", { fg = fg2 })
+	hl(0, "TelescopeResultsVariable", { fg = fg2 })
+	hl(0, "TelescopeResultsConstant", { fg = gold })
+	hl(0, "TelescopePreviewLine", { bg = bg3 })
+	hl(0, "TelescopePreviewMatch", { fg = gold, bg = bg3, bold = true })
+	hl(0, "TelescopePreviewPipe", { fg = plum })
+	hl(0, "TelescopePreviewCharDev", { fg = teal })
+	hl(0, "TelescopePreviewBlock", { fg = amber })
+	hl(0, "TelescopePreviewSocket", { fg = magenta })
+	hl(0, "TelescopePreviewDirectory", { fg = violet, bold = true })
+	hl(0, "TelescopePreviewSymlink", { fg = teal })
+	hl(0, "TelescopePreviewExecute", { fg = sage })
+	hl(0, "TelescopePreviewHyphen", { fg = fg3 })
+	hl(0, "TelescopePreviewRead", { fg = fg3 })
+	hl(0, "TelescopePreviewWrite", { fg = amber })
+	hl(0, "TelescopePreviewUser", { fg = lavender })
+	hl(0, "TelescopePreviewGroup", { fg = violet })
+	hl(0, "TelescopePreviewDate", { fg = teal })
+	hl(0, "TelescopePreviewSize", { fg = sage })
+	hl(0, "TelescopePreviewLink", { fg = teal, underline = true })
+	hl(0, "TelescopePreviewMessage", { fg = fg2 })
+	hl(0, "TelescopePreviewMessageFillchar", { fg = fg3 })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  NVIM-TREE                                                            │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "NvimTreeNormal", { fg = fg2, bg = bg4 })
+	hl(0, "NvimTreeNormalNC", { fg = fg3, bg = bg4 })
+	hl(0, "NvimTreeNormalFloat", { fg = fg2, bg = bg4 })
+	hl(0, "NvimTreeWinSeparator", { fg = brd, bg = bg4 })
+	hl(0, "NvimTreeEndOfBuffer", { fg = bg4 })
+	hl(0, "NvimTreeCursorLine", { bg = bg3 })
+	hl(0, "NvimTreeCursorColumn", { bg = bg3 })
+
+	hl(0, "NvimTreeRootFolder", { fg = purple, bold = true })
+	hl(0, "NvimTreeFolderName", { fg = violet })
+	hl(0, "NvimTreeFolderIcon", { fg = violet })
+	hl(0, "NvimTreeOpenedFolderName", { fg = pink, bold = true })
+	hl(0, "NvimTreeEmptyFolderName", { fg = fg3, italic = true })
+	hl(0, "NvimTreeSymlinkFolderName", { fg = teal, italic = true })
+
+	hl(0, "NvimTreeFileName", { fg = fg2 })
+	hl(0, "NvimTreeFileIcon", { fg = fg3 })
+	hl(0, "NvimTreeOpenedFile", { fg = pink })
+	hl(0, "NvimTreeModifiedFile", { fg = amber })
+	hl(0, "NvimTreeSymlink", { fg = teal, italic = true })
+	hl(0, "NvimTreeExecFile", { fg = sage, bold = true })
+	hl(0, "NvimTreeSpecialFile", { fg = gold, bold = true, underline = true })
+	hl(0, "NvimTreeImageFile", { fg = magenta })
+
+	hl(0, "NvimTreeGitDirty", { fg = amber })
+	hl(0, "NvimTreeGitStaged", { fg = sage })
+	hl(0, "NvimTreeGitMerge", { fg = red })
+	hl(0, "NvimTreeGitRenamed", { fg = violet })
+	hl(0, "NvimTreeGitNew", { fg = teal })
+	hl(0, "NvimTreeGitDeleted", { fg = red })
+	hl(0, "NvimTreeGitIgnored", { fg = fg3, italic = true })
+
+	hl(0, "NvimTreeIndentMarker", { fg = brd })
+	hl(0, "NvimTreeBookmark", { fg = gold })
+	hl(0, "NvimTreeLiveFilterPrefix", { fg = pink, bold = true })
+	hl(0, "NvimTreeLiveFilterValue", { fg = rose })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  TROUBLE                                                              │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "TroubleNormal", { fg = fg2, bg = bg4 })
+	hl(0, "TroubleNormalNC", { fg = fg3, bg = bg4 })
+	hl(0, "TroubleCount", { fg = bg, bg = purple, bold = true })
+	hl(0, "TroubleText", { fg = fg2 })
+	hl(0, "TroubleSource", { fg = fg3, italic = true })
+	hl(0, "TroubleCode", { fg = fg3 })
+	hl(0, "TroubleLocation", { fg = fg3 })
+	hl(0, "TroubleError", { fg = red })
+	hl(0, "TroubleWarning", { fg = amber })
+	hl(0, "TroubleInformation", { fg = teal })
+	hl(0, "TroubleHint", { fg = violet })
+	hl(0, "TroubleSignError", { fg = red, bold = true })
+	hl(0, "TroubleSignWarn", { fg = amber })
+	hl(0, "TroubleSignInfo", { fg = teal })
+	hl(0, "TroubleSignHint", { fg = violet })
+	hl(0, "TroubleDirectory", { fg = violet, bold = true })
+	hl(0, "TroubleFile", { fg = fg2, bold = true })
+	hl(0, "TroubleFoldIcon", { fg = fg3 })
+	hl(0, "TroubleIndent", { fg = brd })
+	hl(0, "TroublePos", { fg = fg3 })
+	hl(0, "TroubleIconError", { fg = red })
+	hl(0, "TroubleIconWarn", { fg = amber })
+	hl(0, "TroubleIconInfo", { fg = teal })
+	hl(0, "TroubleIconHint", { fg = violet })
+	hl(0, "TroublePreview", { fg = pink, bg = bg3 })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  WHICH-KEY                                                            │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "WhichKey", { fg = pink, bold = true })
+	hl(0, "WhichKeyGroup", { fg = violet, bold = true })
+	hl(0, "WhichKeyDesc", { fg = fg2 })
+	hl(0, "WhichKeySeparator", { fg = fg3 })
+	hl(0, "WhichKeyValue", { fg = fg3, italic = true })
+	hl(0, "WhichKeyFloat", { bg = bg2 })
+	hl(0, "WhichKeyBorder", { fg = brd, bg = bg2 })
+	hl(0, "WhichKeyTitle", { fg = bg, bg = purple, bold = true })
+	hl(0, "WhichKeyIcon", { fg = plum })
+	hl(0, "WhichKeyIconAzure", { fg = teal })
+	hl(0, "WhichKeyIconBlue", { fg = sky })
+	hl(0, "WhichKeyIconCyan", { fg = teal })
+	hl(0, "WhichKeyIconGreen", { fg = sage })
+	hl(0, "WhichKeyIconGrey", { fg = fg3 })
+	hl(0, "WhichKeyIconOrange", { fg = amber })
+	hl(0, "WhichKeyIconPurple", { fg = purple })
+	hl(0, "WhichKeyIconRed", { fg = red })
+	hl(0, "WhichKeyIconYellow", { fg = gold })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  NOICE                                                                │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "NoiceCmdline", { fg = fg, bg = bg2 })
+	hl(0, "NoiceCmdlineIcon", { fg = pink })
+	hl(0, "NoiceCmdlineIconSearch", { fg = gold })
+	hl(0, "NoiceCmdlinePopup", { fg = fg, bg = bg2 })
+	hl(0, "NoiceCmdlinePopupBorder", { fg = brd, bg = bg2 })
+	hl(0, "NoiceCmdlinePopupBorderSearch", { fg = gold, bg = bg2 })
+	hl(0, "NoiceCmdlinePopupTitle", { fg = bg, bg = purple, bold = true })
+	hl(0, "NoiceConfirm", { fg = fg, bg = bg2 })
+	hl(0, "NoiceConfirmBorder", { fg = pink, bg = bg2 })
+	hl(0, "NoiceFormatProgressTodo", { fg = fg3, bg = bg2 })
+	hl(0, "NoiceFormatProgressDone", { fg = sage, bg = bg2 })
+	hl(0, "NoiceFormatEvent", { fg = fg3 })
+	hl(0, "NoiceFormatKind", { fg = violet, italic = true })
+	hl(0, "NoiceFormatDate", { fg = teal })
+	hl(0, "NoiceLspProgressTitle", { fg = fg2 })
+	hl(0, "NoiceLspProgressClient", { fg = violet })
+	hl(0, "NoiceLspProgressSpinner", { fg = pink })
+	hl(0, "NoicePopup", { fg = fg, bg = bg2 })
+	hl(0, "NoicePopupBorder", { fg = brd, bg = bg2 })
+	hl(0, "NoiceSplit", { fg = fg, bg = bg })
+	hl(0, "NoiceSplitBorder", { fg = brd, bg = bg })
+	hl(0, "NoiceMini", { fg = fg2, bg = bg2 })
+	hl(0, "NoiceVirtualText", { fg = fg3, italic = true })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  NVIM-NOTIFY                                                          │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "NotifyERRORBorder", { fg = crimson })
+	hl(0, "NotifyWARNBorder", { fg = amber })
+	hl(0, "NotifyINFOBorder", { fg = teal })
+	hl(0, "NotifyDEBUGBorder", { fg = fg3 })
+	hl(0, "NotifyTRACEBorder", { fg = violet })
+	hl(0, "NotifyERRORIcon", { fg = red, bold = true })
+	hl(0, "NotifyWARNIcon", { fg = amber, bold = true })
+	hl(0, "NotifyINFOIcon", { fg = teal, bold = true })
+	hl(0, "NotifyDEBUGIcon", { fg = fg3 })
+	hl(0, "NotifyTRACEIcon", { fg = violet })
+	hl(0, "NotifyERRORTitle", { fg = red, bold = true })
+	hl(0, "NotifyWARNTitle", { fg = amber, bold = true })
+	hl(0, "NotifyINFOTitle", { fg = teal, bold = true })
+	hl(0, "NotifyDEBUGTitle", { fg = fg3 })
+	hl(0, "NotifyTRACETitle", { fg = violet, bold = true })
+	hl(0, "NotifyERRORBody", { fg = fg2, bg = bg2 })
+	hl(0, "NotifyWARNBody", { fg = fg2, bg = bg2 })
+	hl(0, "NotifyINFOBody", { fg = fg2, bg = bg2 })
+	hl(0, "NotifyDEBUGBody", { fg = fg3, bg = bg2 })
+	hl(0, "NotifyTRACEBody", { fg = fg2, bg = bg2 })
+	hl(0, "NotifyLogTime", { fg = fg3, italic = true })
+	hl(0, "NotifyLogTitle", { fg = purple, bold = true })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  DRESSING                                                             │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "DressingInput", { fg = fg, bg = bg2 })
+	hl(0, "DressingInputBorder", { fg = pink, bg = bg2 })
+	hl(0, "DressingInputTitle", { fg = bg, bg = pink, bold = true })
+	hl(0, "DressingSelectBorder", { fg = brd, bg = bg2 })
+	hl(0, "DressingSelectTitle", { fg = bg, bg = purple, bold = true })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  BLINK.CMP                                                            │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "BlinkCmpMenu", { fg = fg2, bg = bg2 })
+	hl(0, "BlinkCmpMenuBorder", { fg = brd, bg = bg2 })
+	hl(0, "BlinkCmpMenuSelection", { fg = fg, bg = bg3 })
+	hl(0, "BlinkCmpScrollBarThumb", { bg = plum })
+	hl(0, "BlinkCmpScrollBarGutter", { bg = bg3 })
+	hl(0, "BlinkCmpLabel", { fg = fg2 })
+	hl(0, "BlinkCmpLabelMatch", { fg = gold, bold = true })
+	hl(0, "BlinkCmpLabelDeprecated", { fg = fg3, strikethrough = true })
+	hl(0, "BlinkCmpLabelDetail", { fg = fg3, italic = true })
+	hl(0, "BlinkCmpLabelDescription", { fg = fg3, italic = true })
+	hl(0, "BlinkCmpKind", { fg = plum })
+	hl(0, "BlinkCmpKindText", { fg = fg2 })
+	hl(0, "BlinkCmpKindMethod", { fg = rose, bold = true })
+	hl(0, "BlinkCmpKindFunction", { fg = pink, bold = true })
+	hl(0, "BlinkCmpKindConstructor", { fg = magenta, bold = true })
+	hl(0, "BlinkCmpKindField", { fg = fg2 })
+	hl(0, "BlinkCmpKindVariable", { fg = fg2 })
+	hl(0, "BlinkCmpKindClass", { fg = violet, bold = true })
+	hl(0, "BlinkCmpKindInterface", { fg = lavender, bold = true })
+	hl(0, "BlinkCmpKindModule", { fg = lavender })
+	hl(0, "BlinkCmpKindProperty", { fg = fg2 })
+	hl(0, "BlinkCmpKindUnit", { fg = teal })
+	hl(0, "BlinkCmpKindValue", { fg = gold })
+	hl(0, "BlinkCmpKindEnum", { fg = violet })
+	hl(0, "BlinkCmpKindKeyword", { fg = purple })
+	hl(0, "BlinkCmpKindSnippet", { fg = amber })
+	hl(0, "BlinkCmpKindColor", { fg = magenta })
+	hl(0, "BlinkCmpKindFile", { fg = fg2 })
+	hl(0, "BlinkCmpKindReference", { fg = violet })
+	hl(0, "BlinkCmpKindFolder", { fg = violet })
+	hl(0, "BlinkCmpKindEnumMember", { fg = gold })
+	hl(0, "BlinkCmpKindConstant", { fg = gold })
+	hl(0, "BlinkCmpKindStruct", { fg = violet })
+	hl(0, "BlinkCmpKindEvent", { fg = magenta })
+	hl(0, "BlinkCmpKindOperator", { fg = plum })
+	hl(0, "BlinkCmpKindTypeParameter", { fg = sky })
+	hl(0, "BlinkCmpSource", { fg = fg3, italic = true })
+	hl(0, "BlinkCmpDoc", { fg = fg2, bg = bg2 })
+	hl(0, "BlinkCmpDocBorder", { fg = brd, bg = bg2 })
+	hl(0, "BlinkCmpDocSeparator", { fg = brd })
+	hl(0, "BlinkCmpDocCursorLine", { bg = bg3 })
+	hl(0, "BlinkCmpSignatureHelp", { fg = fg2, bg = bg2 })
+	hl(0, "BlinkCmpSignatureHelpBorder", { fg = pink, bg = bg2 })
+	hl(0, "BlinkCmpSignatureHelpActiveParameter", { fg = pink, bold = true, underline = true })
+	hl(0, "BlinkCmpGhostText", { fg = fg3, italic = true })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  SNACKS DASHBOARD                                                     │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "SnacksDashboardNormal", { fg = fg2, bg = bg })
+	hl(0, "SnacksDashboardHeader", { fg = purple, bold = true })
+	hl(0, "SnacksDashboardFooter", { fg = cmt, italic = true })
+	hl(0, "SnacksDashboardKey", { fg = pink, bold = true })
+	hl(0, "SnacksDashboardDesc", { fg = fg2 })
+	hl(0, "SnacksDashboardIcon", { fg = violet })
+	hl(0, "SnacksDashboardTitle", { fg = purple, bold = true })
+	hl(0, "SnacksDashboardDir", { fg = cmt })
+	hl(0, "SnacksDashboardFile", { fg = fg2 })
+	hl(0, "SnacksDashboardSpecial", { fg = plum })
+	hl(0, "SnacksDashboardTerminal", { fg = fg, bg = bg })
+
+	-- Snacks notifier (disabled but define anyway for completeness)
+	hl(0, "SnacksNotifierError", { fg = red })
+	hl(0, "SnacksNotifierWarn", { fg = amber })
+	hl(0, "SnacksNotifierInfo", { fg = teal })
+	hl(0, "SnacksNotifierDebug", { fg = fg3 })
+	hl(0, "SnacksNotifierTrace", { fg = violet })
+	hl(0, "SnacksNotifierBorderError", { fg = crimson })
+	hl(0, "SnacksNotifierBorderWarn", { fg = amber })
+	hl(0, "SnacksNotifierBorderInfo", { fg = brd })
+	hl(0, "SnacksNotifierBorderDebug", { fg = fg3 })
+	hl(0, "SnacksNotifierBorderTrace", { fg = violet })
+	hl(0, "SnacksNotifierIconError", { fg = red, bold = true })
+	hl(0, "SnacksNotifierIconWarn", { fg = amber, bold = true })
+	hl(0, "SnacksNotifierIconInfo", { fg = teal, bold = true })
+	hl(0, "SnacksNotifierIconDebug", { fg = fg3 })
+	hl(0, "SnacksNotifierIconTrace", { fg = violet })
+	hl(0, "SnacksNotifierTitleError", { fg = red, bold = true })
+	hl(0, "SnacksNotifierTitleWarn", { fg = amber, bold = true })
+	hl(0, "SnacksNotifierTitleInfo", { fg = teal, bold = true })
+	hl(0, "SnacksNotifierTitleDebug", { fg = fg3 })
+	hl(0, "SnacksNotifierTitleTrace", { fg = violet, bold = true })
+	hl(0, "SnacksNotifierFooter", { fg = fg3, italic = true })
+
+	-- Snacks words
+	hl(0, "SnacksWordsCurrent", { underline = true, sp = pink })
+	hl(0, "SnacksWordsOther", { bg = bg3 })
+
+	-- Snacks scroll
+	hl(0, "SnacksScrollScroll", { fg = violet })
+	hl(0, "SnacksScrollCursor", { fg = pink, bold = true })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  MINI STATUSLINE                                                      │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "MiniStatuslineModeNormal", { fg = bg, bg = purple, bold = true })
+	hl(0, "MiniStatuslineModeInsert", { fg = bg, bg = pink, bold = true })
+	hl(0, "MiniStatuslineModeVisual", { fg = bg, bg = violet, bold = true })
+	hl(0, "MiniStatuslineModeReplace", { fg = bg, bg = red, bold = true })
+	hl(0, "MiniStatuslineModeCommand", { fg = bg, bg = magenta, bold = true })
+	hl(0, "MiniStatuslineModeOther", { fg = bg, bg = teal, bold = true })
+	hl(0, "MiniStatuslineDevinfo", { fg = fg3, bg = bg2 })
+	hl(0, "MiniStatuslineFilename", { fg = fg2, bg = bg })
+	hl(0, "MiniStatuslineFileinfo", { fg = fg3, bg = bg2 })
+	hl(0, "MiniStatuslineInactive", { fg = cmt, bg = bg })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  INDENT BLANKLINE                                                     │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "IblIndent", { fg = "#2a1d38" })
+	hl(0, "IblScope", { fg = "#5a3a7a" })
+	hl(0, "IblWhitespace", { fg = "#1c1520" })
+	hl(0, "IndentBlanklineChar", { fg = "#2a1d38" })
+	hl(0, "IndentBlanklineContextChar", { fg = "#5a3a7a" })
+	hl(0, "IndentBlanklineSpaceChar", { fg = "#1c1520" })
+	hl(0, "IndentBlanklineSpaceCharBlankline", { fg = "#1c1520" })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  FLASH                                                                │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "FlashBackdrop", { fg = fg3 })
+	hl(0, "FlashMatch", { fg = bg, bg = purple, bold = true })
+	hl(0, "FlashCurrent", { fg = bg, bg = pink, bold = true })
+	hl(0, "FlashLabel", { fg = bg, bg = magenta, bold = true })
+	hl(0, "FlashCursor", { fg = bg, bg = pink, bold = true })
+	hl(0, "FlashPrompt", { fg = pink, bold = true })
+	hl(0, "FlashPromptIcon", { fg = purple })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  DAP                                                                  │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "DapBreakpoint", { fg = red, bold = true })
+	hl(0, "DapBreakpointCondition", { fg = amber, bold = true })
+	hl(0, "DapBreakpointRejected", { fg = fg3 })
+	hl(0, "DapLogPoint", { fg = teal })
+	hl(0, "DapStopped", { fg = sage, bg = "#0d1f0d", bold = true })
+	hl(0, "DapStoppedLine", { bg = "#0d1f0d" })
+
+	-- DAP UI
+	hl(0, "DapUIScope", { fg = teal, bold = true })
+	hl(0, "DapUIType", { fg = violet, bold = true })
+	hl(0, "DapUIValue", { fg = fg2 })
+	hl(0, "DapUIModifiedValue", { fg = amber, bold = true })
+	hl(0, "DapUIDecoration", { fg = brd })
+	hl(0, "DapUIThread", { fg = sage })
+	hl(0, "DapUIStoppedThread", { fg = teal, bold = true })
+	hl(0, "DapUIFrameName", { fg = fg2 })
+	hl(0, "DapUISource", { fg = violet })
+	hl(0, "DapUILineNumber", { fg = fg3 })
+	hl(0, "DapUIBreakpointsPath", { fg = teal, bold = true })
+	hl(0, "DapUIBreakpointsInfo", { fg = sage })
+	hl(0, "DapUIBreakpointsCurrentLine", { fg = gold, bold = true })
+	hl(0, "DapUIBreakpointsDisabledLine", { fg = fg3 })
+	hl(0, "DapUICurrentFrameName", { fg = pink, bold = true })
+	hl(0, "DapUIWatchesEmpty", { fg = fg3, italic = true })
+	hl(0, "DapUIWatchesValue", { fg = sage })
+	hl(0, "DapUIWatchesError", { fg = red })
+	hl(0, "DapUIFloatBorder", { fg = brd, bg = bg2 })
+	hl(0, "DapUIFloatNormal", { fg = fg, bg = bg2 })
+	hl(0, "DapUIEndofBuffer", { fg = bg4 })
+	hl(0, "DapUIPlayPause", { fg = sage, bold = true })
+	hl(0, "DapUIPlayPauseNC", { fg = fg3 })
+	hl(0, "DapUIRestart", { fg = teal, bold = true })
+	hl(0, "DapUIRestartNC", { fg = fg3 })
+	hl(0, "DapUIStop", { fg = red, bold = true })
+	hl(0, "DapUIStopNC", { fg = fg3 })
+	hl(0, "DapUIStepOver", { fg = violet, bold = true })
+	hl(0, "DapUIStepOverNC", { fg = fg3 })
+	hl(0, "DapUIStepInto", { fg = pink, bold = true })
+	hl(0, "DapUIStepIntoNC", { fg = fg3 })
+	hl(0, "DapUIStepBack", { fg = lavender })
+	hl(0, "DapUIStepBackNC", { fg = fg3 })
+	hl(0, "DapUIStepOut", { fg = magenta, bold = true })
+	hl(0, "DapUIStepOutNC", { fg = fg3 })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  Fidget                                                               │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "FidgetTitle", { fg = purple, bold = true })
+	hl(0, "FidgetTask", { fg = fg3, italic = true })
+	hl(0, "FidgetDone", { fg = sage })
+	hl(0, "FidgetAccent", { fg = pink })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  MASON                                                                │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "MasonNormal", { fg = fg, bg = bg2 })
+	hl(0, "MasonHeader", { fg = bg, bg = purple, bold = true })
+	hl(0, "MasonHeaderSecondary", { fg = bg, bg = pink, bold = true })
+	hl(0, "MasonHighlight", { fg = purple })
+	hl(0, "MasonHighlightBlock", { fg = bg, bg = purple })
+	hl(0, "MasonHighlightBlockBold", { fg = bg, bg = purple, bold = true })
+	hl(0, "MasonHighlightSecondary", { fg = pink })
+	hl(0, "MasonHighlightBlockSecondary", { fg = bg, bg = pink })
+	hl(0, "MasonHighlightBlockBoldSecondary", { fg = bg, bg = pink, bold = true })
+	hl(0, "MasonLink", { fg = teal, underline = true })
+	hl(0, "MasonMuted", { fg = fg3 })
+	hl(0, "MasonMutedBlock", { fg = fg3, bg = bg3 })
+	hl(0, "MasonMutedBlockBold", { fg = fg3, bg = bg3, bold = true })
+	hl(0, "MasonError", { fg = red, bold = true })
+	hl(0, "MasonWarning", { fg = amber })
+	hl(0, "MasonHeading", { fg = purple, bold = true, underline = true })
+	hl(0, "MasonPackageInstalled", { fg = sage })
+	hl(0, "MasonPackagePending", { fg = amber })
+	hl(0, "MasonPackageUninstalled", { fg = fg3 })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  LAZY.NVIM                                                            │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "LazyNormal", { fg = fg, bg = bg2 })
+	hl(0, "LazyBorder", { fg = brd, bg = bg2 })
+	hl(0, "LazyH1", { fg = bg, bg = purple, bold = true })
+	hl(0, "LazyH2", { fg = purple, bold = true, underline = true })
+	hl(0, "LazyReasonPlugin", { fg = violet })
+	hl(0, "LazyReasonEvent", { fg = pink })
+	hl(0, "LazyReasonKeys", { fg = gold })
+	hl(0, "LazyReasonStart", { fg = sage })
+	hl(0, "LazyReasonFt", { fg = teal })
+	hl(0, "LazyReasonCmd", { fg = amber })
+	hl(0, "LazyReasonImport", { fg = lavender })
+	hl(0, "LazyReasonSource", { fg = fg3 })
+	hl(0, "LazyReasonRuntime", { fg = fg3 })
+	hl(0, "LazyReasonRequire", { fg = plum })
+	hl(0, "LazySpecial", { fg = pink })
+	hl(0, "LazyHandlerRuntime", { fg = fg3 })
+	hl(0, "LazyHandlerEvent", { fg = pink })
+	hl(0, "LazyHandlerKeys", { fg = gold })
+	hl(0, "LazyHandlerCmd", { fg = amber })
+	hl(0, "LazyHandlerFt", { fg = teal })
+	hl(0, "LazyHandlerPlugin", { fg = violet })
+	hl(0, "LazyHandlerSource", { fg = fg3 })
+	hl(0, "LazyHandlerImport", { fg = lavender })
+	hl(0, "LazyProgressTodo", { fg = fg3 })
+	hl(0, "LazyProgressDone", { fg = sage, bold = true })
+	hl(0, "LazyCommit", { fg = violet, bold = true })
+	hl(0, "LazyCommitType", { fg = pink })
+	hl(0, "LazyCommitScope", { fg = violet, italic = true })
+	hl(0, "LazyCommitIssue", { fg = red })
+	hl(0, "LazyLocal", { fg = fg3 })
+	hl(0, "LazyUrl", { fg = teal, underline = true })
+	hl(0, "LazyProp", { fg = fg3 })
+	hl(0, "LazyValue", { fg = fg2 })
+	hl(0, "LazyNoCond", { fg = fg3 })
+	hl(0, "LazyTaskOutput", { fg = fg3 })
+	hl(0, "LazyTaskError", { fg = red })
+	hl(0, "LazyDimmed", { fg = fg3 })
+	hl(0, "LazyPurple", { fg = purple })
+	hl(0, "LazyDir", { fg = violet, bold = true })
+	hl(0, "LazyButton", { fg = fg, bg = bg3 })
+	hl(0, "LazyButtonActive", { fg = bg, bg = purple, bold = true })
+	hl(0, "LazyDiffAdd", { fg = sage })
+	hl(0, "LazyDiffChange", { fg = amber })
+	hl(0, "LazyDiffDelete", { fg = red })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  OVERSEER                                                             │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "OverseerPENDING", { fg = fg3 })
+	hl(0, "OverseerRUNNING", { fg = teal, bold = true })
+	hl(0, "OverseerSUCCESS", { fg = sage, bold = true })
+	hl(0, "OverseerCANCELED", { fg = amber })
+	hl(0, "OverseerFAILURE", { fg = red, bold = true })
+	hl(0, "OverseerTask", { fg = fg2 })
+	hl(0, "OverseerTaskBorder", { fg = brd })
+	hl(0, "OverseerOutput", { fg = fg3, italic = true })
+	hl(0, "OverseerComponent", { fg = violet })
+	hl(0, "OverseerField", { fg = fg3 })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  SPECTRE                                                              │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "SpectreSearch", { fg = rose, bg = bg2 })
+	hl(0, "SpectreReplace", { fg = sage, bg = bg2 })
+	hl(0, "SpectreFile", { fg = violet, bold = true })
+	hl(0, "SpectreDir", { fg = violet })
+	hl(0, "SpectreHeader", { fg = bg, bg = purple, bold = true })
+	hl(0, "SpectreBody", { fg = fg2, bg = bg })
+	hl(0, "SpectreUI", { fg = fg3 })
+	hl(0, "SpectreTitle", { fg = bg, bg = plum, bold = true })
+
+	-- ╭──────────────────────────────────────────────────────────────────────╮
+	-- │  TWILIGHT                                                             │
+	-- ╰──────────────────────────────────────────────────────────────────────╯
+
+	hl(0, "Twilight", { fg = fg3, bg = bg })
+end
+
+-- ── 7. Autocmds ───────────────────────────────────────────────────────────────
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+	callback = apply_theme_overrides,
+})
+
+vim.api.nvim_create_autocmd("LspAttach", {
+	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
+	callback = function(ev)
+		local bufnr = ev.buf
+		local opts = { buffer = bufnr, silent = true }
+		local map = function(mode, lhs, rhs, desc)
+			vim.keymap.set(mode, lhs, rhs, vim.tbl_extend("force", opts, { desc = desc }))
+		end
+
+		map("n", "K", vim.lsp.buf.hover, "LSP hover")
+		map("n", "gd", vim.lsp.buf.definition, "Go to definition")
+		map("n", "gr", vim.lsp.buf.references, "References")
+		map("n", "gi", vim.lsp.buf.implementation, "Implementation")
+		map("n", "<leader>rn", vim.lsp.buf.rename, "Rename symbol")
+		map("n", "<leader>ca", vim.lsp.buf.code_action, "Code action")
+		map("n", "<leader>ld", vim.diagnostic.open_float, "Line diagnostics")
+
+		map("n", "<leader>lf", function()
+			local ok, conform = pcall(require, "conform")
+			if ok then
+				conform.format({ bufnr = bufnr, lsp_fallback = true, async = false, timeout_ms = 500 })
+			else
+				vim.lsp.buf.format({ async = false })
+			end
+		end, "Format buffer")
+
+		local client = vim.lsp.get_client_by_id(ev.data.client_id)
+		if client and client.supports_method("textDocument/inlayHint") then
+			vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+		end
+	end,
+})
+
+-- ── 8. Bootstrap lazy.nvim ────────────────────────────────────────────────────
+
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.uv.fs_stat(lazypath) then
+	vim.fn.system({
+		"git",
+		"clone",
+		"--filter=blob:none",
+		"https://github.com/folke/lazy.nvim.git",
+		"--branch=stable",
+		lazypath,
+	})
+end
+vim.opt.rtp:prepend(lazypath)
+
+-- ── 9. Plugins ────────────────────────────────────────────────────────────────
+
+require("lazy").setup({
+	spec = {
+
+		--------------------------------------------------------------------------
+		-- Theme base: we use a minimal dark base and override 100% of colors
+		-- via apply_theme_overrides. Dracula is kept only for terminal palette
+		-- initialisation; all visible highlight groups are fully overridden.
+		--------------------------------------------------------------------------
+		{
+			"Mofiqul/dracula.nvim",
+			lazy = false,
+			priority = 1000,
+			config = function()
+				vim.cmd.colorscheme("dracula")
+				apply_theme_overrides()
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Statusline
+		--------------------------------------------------------------------------
+		{
+			"echasnovski/mini.nvim",
+			version = false,
+			lazy = false,
+			config = function()
+				require("mini.statusline").setup({ use_icons = false })
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Snacks
+		--------------------------------------------------------------------------
+		{
+			"folke/snacks.nvim",
+			lazy = false,
+			priority = 900,
+			opts = {
+				dashboard = {
+					preset = {
+						header = table.concat({
+							"██╗   ██╗ ██████╗ ██╗██████╗     ██╗   ██╗██╗ ██████╗ ██╗     ███████╗████████╗",
+							"██║   ██║██╔═══██╗██║██╔══██╗    ██║   ██║██║██╔═══██╗██║     ██╔════╝╚══██╔══╝",
+							"██║   ██║██║   ██║██║██║  ██║    ██║   ██║██║██║   ██║██║     █████╗     ██║   ",
+							"╚██╗ ██╔╝██║   ██║██║██║  ██║    ╚██╗ ██╔╝██║██║   ██║██║     ██╔══╝     ██║   ",
+							" ╚████╔╝ ╚██████╔╝██║██████╔╝     ╚████╔╝ ██║╚██████╔╝███████╗███████╗   ██║   ",
+							"  ╚═══╝   ╚═════╝ ╚═╝╚═════╝       ╚═══╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝  ╚═╝   ",
+						}, "\n"),
+						keys = {
+							{ icon = "  ", key = "e", desc = "Explore", action = ":NvimTreeToggle" },
+							{ icon = "  ", key = "f", desc = "Find File", action = ":Telescope find_files" },
+							{ icon = "  ", key = "r", desc = "Recent Files", action = ":Telescope oldfiles" },
+							{ icon = "  ", key = "g", desc = "Live Grep", action = ":Telescope live_grep" },
+							{ icon = "  ", key = "q", desc = "Quit", action = ":qa" },
+						},
+					},
+				},
+				bigfile = { enabled = true, size = 1.5 * 1024 * 1024 },
+				words = { enabled = true },
+				scroll = { enabled = true },
+				lazygit = { enabled = true },
+				notifier = { enabled = false },
+				indent = { enabled = false },
+				statuscolumn = { enabled = false },
+			},
+			keys = {
+				{
+					"<leader>gl",
+					function()
+						require("snacks").lazygit()
+					end,
+					desc = "LazyGit",
+				},
+			},
+		},
+
+		--------------------------------------------------------------------------
+		-- File explorer
+		--------------------------------------------------------------------------
+		{
+			"nvim-tree/nvim-tree.lua",
+			cmd = { "NvimTreeToggle", "NvimTreeFocus" },
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			keys = {
+				{ "<leader>e", "<cmd>NvimTreeToggle<CR>", desc = "Toggle file explorer" },
+			},
+			config = function()
+				require("nvim-tree").setup({
+					view = {
+						width = 34,
+						side = "left",
+						preserve_window_proportions = true,
+					},
+					renderer = {
+						group_empty = true,
+						highlight_git = true,
+						highlight_opened_files = "name",
+					},
+					filters = { dotfiles = false },
+					git = { enable = true },
+					actions = { open_file = { quit_on_open = false } },
+				})
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Telescope
+		--------------------------------------------------------------------------
+		{
+			"nvim-telescope/telescope.nvim",
+			cmd = "Telescope",
+			dependencies = { "nvim-lua/plenary.nvim" },
+			keys = {
+				{
+					"<leader>ff",
+					function()
+						require("telescope.builtin").find_files({ hidden = true, no_ignore = true })
+					end,
+					desc = "Find files",
+				},
+				{
+					"<leader>fg",
+					function()
+						require("telescope.builtin").live_grep({
+							additional_args = function()
+								return { "--hidden", "--no-ignore" }
+							end,
+						})
+					end,
+					desc = "Search text",
+				},
+				{
+					"<leader>fb",
+					function()
+						require("telescope.builtin").buffers()
+					end,
+					desc = "Find buffers",
+				},
+				{
+					"<leader>fa",
+					function()
+						require("telescope.builtin").find_files({
+							cwd = vim.uv.os_homedir(),
+							hidden = true,
+							no_ignore = true,
+						})
+					end,
+					desc = "Find files (home)",
+				},
+				{
+					"<leader>fn",
+					function()
+						require("telescope.builtin").find_files({
+							cwd = "/etc/nixos",
+							hidden = true,
+							no_ignore = true,
+						})
+					end,
+					desc = "Find Nix configs",
+				},
+			},
+			config = function()
+				require("telescope").setup({
+					defaults = {
+						prompt_prefix = "❯ ",
+						selection_caret = "❯ ",
+						borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" },
+						sorting_strategy = "ascending",
+						layout_config = { prompt_position = "top" },
+					},
+					pickers = {
+						find_files = { hidden = true, no_ignore = true },
+						live_grep = {
+							additional_args = function()
+								return { "--hidden", "--no-ignore" }
+							end,
+						},
+					},
+				})
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Spectre
+		--------------------------------------------------------------------------
+		{
+			"nvim-pack/nvim-spectre",
+			cmd = { "Spectre" },
+			dependencies = { "nvim-lua/plenary.nvim" },
+			config = function()
+				require("spectre").setup()
+				vim.keymap.set(
+					"n",
+					"<leader>S",
+					'<cmd>lua require("spectre").toggle()<CR>',
+					{ desc = "Toggle Spectre" }
+				)
+				vim.keymap.set(
+					"n",
+					"<leader>sw",
+					'<cmd>lua require("spectre").open_visual({select_word=true})<CR>',
+					{ desc = "Search current word" }
+				)
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Flash
+		--------------------------------------------------------------------------
+		{
+			"folke/flash.nvim",
+			event = "VeryLazy",
+			config = function()
+				require("flash").setup({ modes = { search = { enabled = true } } })
+				vim.keymap.set({ "n", "x", "o" }, "<leader>j", function()
+					require("flash").jump()
+				end, { desc = "Flash jump" })
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Notifications + command-line UI
+		--------------------------------------------------------------------------
+		{
+			"rcarriga/nvim-notify",
+			event = "VeryLazy",
+			config = function()
+				vim.notify = require("notify")
+				require("notify").setup({
+					background_colour = "#151515",
+					stages = "fade",
+					timeout = 2500,
+				})
+			end,
+		},
+
+		{
+			"folke/noice.nvim",
+			event = "VeryLazy",
+			dependencies = { "MunifTanjim/nui.nvim", "rcarriga/nvim-notify" },
+			config = function()
+				require("noice").setup({
+					lsp = {
+						progress = { enabled = true },
+						override = {
+							["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+							["vim.lsp.util.stylize_markdown"] = true,
+						},
+					},
+					presets = {
+						bottom_search = true,
+						command_palette = true,
+						long_message_to_split = true,
+						lsp_doc_border = true,
+					},
+				})
+			end,
+		},
+
+		{
+			"stevearc/dressing.nvim",
+			event = "VeryLazy",
+			config = function()
+				require("dressing").setup({
+					input = { border = "single" },
+					select = { backend = { "telescope", "builtin" } },
+				})
+			end,
+		},
+
+		{
+			"folke/which-key.nvim",
+			event = "VeryLazy",
+			config = function()
+				require("which-key").setup({
+					win = { border = "single" },
+					spec = {
+						{ "<leader>f", group = "files" },
+						{ "<leader>g", group = "git" },
+						{ "<leader>l", group = "lsp" },
+						{ "<leader>d", group = "debug" },
+						{ "<leader>x", group = "diagnostics" },
+						{ "<leader>r", group = "run" },
+						{ "<leader>s", group = "search" },
+					},
+				})
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Trouble + Twilight
+		--------------------------------------------------------------------------
+		{
+			"folke/trouble.nvim",
+			cmd = "Trouble",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			config = function()
+				require("trouble").setup({})
+				vim.keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<CR>", { desc = "Diagnostics" })
+				vim.keymap.set("n", "<leader>xq", "<cmd>Trouble qflist toggle<CR>", { desc = "Quickfix" })
+			end,
+		},
+
+		{
+			"folke/twilight.nvim",
+			lazy = false, -- 1. Disable lazy loading so it loads on startup
+			config = function()
+				require("twilight").setup()
+
+				-- 2. Automatically turn it on as soon as the plugin loads
+				vim.cmd([[Twilight]])
+
+				vim.keymap.set("n", "<leader>t", "<cmd>Twilight<CR>", { desc = "Toggle focus mode" })
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Git signs
+		--------------------------------------------------------------------------
+		{
+			"lewis6991/gitsigns.nvim",
+			event = { "BufReadPre", "BufNewFile" },
+			config = function()
+				require("gitsigns").setup({
+					signs = {
+						add = { text = "▎" },
+						change = { text = "▎" },
+						delete = { text = "▎" },
+						topdelete = { text = "▔" },
+						changedelete = { text = "~" },
+					},
+					current_line_blame = true,
+					current_line_blame_opts = { delay = 300 },
+				})
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Editing helpers
+		--------------------------------------------------------------------------
+		{
+			"kylechui/nvim-surround",
+			event = "VeryLazy",
+			config = function()
+				require("nvim-surround").setup()
+			end,
+		},
+
+		{
+			"windwp/nvim-autopairs",
+			event = "InsertEnter",
+			config = function()
+				require("nvim-autopairs").setup({ check_ts = true })
+			end,
+		},
+
+		{
+			"lukas-reineke/indent-blankline.nvim",
+			main = "ibl",
+			event = { "BufReadPre", "BufNewFile" },
+			config = function()
+				require("ibl").setup({
+					indent = { char = "▏", highlight = { "IblIndent" } },
+					scope = { enabled = false },
+				})
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Treesitter
+		--------------------------------------------------------------------------
+		{
+			"nvim-treesitter/nvim-treesitter",
+			build = ":TSUpdate",
+			event = { "BufReadPre", "BufNewFile" },
+			config = function()
+				local ok, ts = pcall(require, "nvim-treesitter.configs")
+				if not ok then
+					return
+				end
+				ts.setup({
+					ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "rust" },
+					sync_install = false,
+					auto_install = true,
+					highlight = {
+						enable = true,
+						additional_vim_regex_highlighting = false,
+						disable = function(_, buf)
+							local ok2, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
+							return ok2 and stats and stats.size > 100 * 1024
+						end,
+					},
+					indent = { enable = true },
+				})
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Neovim Lua dev
+		--------------------------------------------------------------------------
+		{
+			"folke/lazydev.nvim",
+			ft = "lua",
+			opts = {
+				library = {
+					{ path = "${3rd}/luv/library", words = { "vim%.uv" } },
+				},
+			},
+		},
+
+		--------------------------------------------------------------------------
+		-- LSP
+		--------------------------------------------------------------------------
+		{
+			"neovim/nvim-lspconfig",
+			event = { "BufReadPre", "BufNewFile" },
+			dependencies = {
+				"mason-org/mason.nvim",
+				"mason-org/mason-lspconfig.nvim",
+				"j-hui/fidget.nvim",
+				"folke/lazydev.nvim",
+				"saghen/blink.cmp",
+			},
+			config = function()
+				require("mason").setup({ ui = { border = "single" } })
+
+				require("mason-lspconfig").setup({
+					ensure_installed = { "lua_ls", "rust_analyzer" },
+					automatic_installation = false,
+				})
+
+				require("fidget").setup({})
+
+				vim.lsp.config("*", {
+					capabilities = require("blink.cmp").get_lsp_capabilities(),
+				})
+
+				vim.lsp.config("lua_ls", {
+					settings = {
+						Lua = {
+							diagnostics = { globals = { "vim" } },
+							workspace = { checkThirdParty = false },
+							telemetry = { enable = false },
+						},
+					},
+				})
+
+				vim.lsp.enable({ "lua_ls", "rust_analyzer" })
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- blink.cmp
+		--------------------------------------------------------------------------
+		{
+			"saghen/blink.cmp",
+			version = "1.*",
+			dependencies = { "rafamadriz/friendly-snippets" },
+			opts = {
+				keymap = { preset = "default" },
+				appearance = {
+					use_nvim_cmp_as_default = true,
+					nerd_font_variant = "mono",
+				},
+				completion = {
+					accept = { auto_brackets = { enabled = false } },
+					documentation = {
+						auto_show = true,
+						auto_show_delay_ms = 200,
+						window = { border = "single" },
+					},
+					menu = {
+						border = "single",
+						draw = { treesitter = { "lsp" } },
+					},
+				},
+				sources = {
+					default = { "lazydev", "lsp", "path", "snippets", "buffer" },
+					providers = {
+						lazydev = {
+							name = "LazyDev",
+							module = "lazydev.integrations.blink",
+							score_offset = 100,
+						},
+					},
+				},
+				fuzzy = { implementation = "prefer_rust_with_warning" },
+				signature = { enabled = true, window = { border = "single" } },
+			},
+		},
+
+		--------------------------------------------------------------------------
+		-- Formatting
+		--------------------------------------------------------------------------
+		{
+			"stevearc/conform.nvim",
+			event = { "BufWritePre" },
+			cmd = { "ConformInfo" },
+			opts = {
+				formatters_by_ft = {
+					lua = { "stylua" },
+					rust = { "rustfmt", lsp_format = "fallback" },
+					javascript = { "prettier" },
+					typescript = { "prettier" },
+					json = { "prettier" },
+					css = { "prettier" },
+					html = { "prettier" },
+					markdown = { "prettier" },
+				},
+				format_on_save = { timeout_ms = 500, lsp_fallback = true },
+			},
+		},
+
+		--------------------------------------------------------------------------
+		-- DAP
+		--------------------------------------------------------------------------
+		{
+			"mfussenegger/nvim-dap",
+			dependencies = { "rcarriga/nvim-dap-ui", "nvim-neotest/nvim-nio" },
+			config = function()
+				local dap = require("dap")
+				local dapui = require("dapui")
+				dapui.setup()
+
+				dap.listeners.after.event_initialized["dapui_config"] = function()
+					dapui.open()
+				end
+				dap.listeners.before.event_terminated["dapui_config"] = function()
+					dapui.close()
+				end
+				dap.listeners.before.event_exited["dapui_config"] = function()
+					dapui.close()
+				end
+
+				vim.keymap.set("n", "<leader>db", dap.toggle_breakpoint, { desc = "Toggle breakpoint" })
+				vim.keymap.set("n", "<leader>dc", dap.continue, { desc = "Start/Continue debug" })
+				vim.keymap.set("n", "<leader>di", dap.step_into, { desc = "Step into" })
+				vim.keymap.set("n", "<leader>do", dap.step_over, { desc = "Step over" })
+				vim.keymap.set("n", "<leader>dO", dap.step_out, { desc = "Step out" })
+			end,
+		},
+
+		--------------------------------------------------------------------------
+		-- Overseer
+		--------------------------------------------------------------------------
+		{
+			"stevearc/overseer.nvim",
+			cmd = { "OverseerRun", "OverseerToggle", "OverseerOpen" },
+			config = function()
+				require("overseer").setup({})
+				vim.keymap.set("n", "<leader>rr", "<cmd>OverseerRun<CR>", { desc = "Run task" })
+				vim.keymap.set("n", "<leader>rt", "<cmd>OverseerToggle<CR>", { desc = "Toggle task list" })
+			end,
+		},
+	}, -- end spec
+
+	defaults = { lazy = true },
+	checker = { enabled = false, notify = false },
+	change_detection = { enabled = true, notify = false },
+	install = { missing = true, colorscheme = { "dracula" } },
+
+	performance = {
+		cache = { enabled = true },
+		rtp = {
+			reset = true,
+			disabled_plugins = {
+				"gzip",
+				"tarPlugin",
+				"tohtml",
+				"tutor",
+				"zipPlugin",
+				"netrwPlugin",
+			},
+		},
+	},
+
+	ui = { border = "single" },
+})
+
+-- ── 10. Final theme pass ──────────────────────────────────────────────────────
+vim.schedule(function()
+	apply_theme_overrides()
+end)
