@@ -1403,14 +1403,21 @@ require("lazy").setup({
 
 		{
 			"folke/twilight.nvim",
-			lazy = false, -- 1. Disable lazy loading so it loads on startup
+			-- Remove lazy = false, let it lazy load when you open a file
 			config = function()
 				require("twilight").setup()
 
-				-- 2. Automatically turn it on as soon as the plugin loads
-				vim.cmd([[Twilight]])
-
+				-- Set the keymap immediately
 				vim.keymap.set("n", "<leader>t", "<cmd>Twilight<CR>", { desc = "Toggle focus mode" })
+
+				-- Auto-enable ONLY when a real file is loaded, not on the empty start screen
+				vim.api.nvim_create_autocmd("BufReadPost", {
+					callback = function()
+						if vim.bo.buftype == "" then
+							pcall(vim.cmd, "TwilightEnable")
+						end
+					end,
+				})
 			end,
 		},
 
