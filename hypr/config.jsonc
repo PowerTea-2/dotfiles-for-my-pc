@@ -1,0 +1,42 @@
+{
+    "layer": "top",
+    "position": "top",
+    "mod": "dock",
+    "height": 28,
+    "exclusive": false,
+    "passthrough": false,
+    "gtk-layer-shell": true,
+    "margin-top": 5,
+
+    "modules-left": [],
+    "modules-center": ["clock", "power-profiles-daemon", "battery"],
+    "modules-right": [],
+
+    "clock": {
+        "format": "  {:%H:%M}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+
+    "power-profiles-daemon": {
+        "format": "{icon}",
+        "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
+        "tooltip": true,
+        "format-icons": {
+          "default": "",
+          "performance": "",
+          "balanced": "",
+          "power-saver": ""
+        }
+    },
+
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{capacity}% {icon}",
+        "format-charging": "{capacity}% ",
+        "format-plugged": "{capacity}% ",
+        "format-icons": ["", "", "", "", ""]
+    }
+}
