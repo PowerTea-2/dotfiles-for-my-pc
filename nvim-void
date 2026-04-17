@@ -17,7 +17,7 @@ vim.g.maplocalleader = " "
 local opt = vim.opt
 
 opt.termguicolors = true
-opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus"
+opt.clipboard = "unnamedplus"
 opt.number = true
 opt.relativenumber = false
 opt.signcolumn = "yes"
@@ -76,6 +76,42 @@ vim.api.nvim_create_user_command("MkFile", function()
 	vim.cmd("write")
 end, { desc = "Create missing parent directories and write file" })
 
+-- ── Neovide GUI tweaks ───────────────────────────────────────────────────────
+
+-- Neovide GUI copy/paste shortcuts (Ctrl+Shift+C / Ctrl+Shift+V)
+if vim.g.neovide then
+	-- Normal & Visual mode: paste from system clipboard
+	vim.keymap.set({ "n", "v" }, "<C-S-v>", '"+p', { silent = true, desc = "Paste from system clipboard" })
+
+	-- Insert mode: paste from system clipboard
+	vim.keymap.set("i", "<C-S-v>", "<C-r>+", { silent = true, desc = "Paste from system clipboard" })
+
+	-- Visual mode: copy to system clipboard
+	vim.keymap.set("v", "<C-S-c>", '"+y', { silent = true, desc = "Copy to system clipboard" })
+end
+
+-- Optional: make system clipboard the default (same behavior as your terminal nvim)
+vim.opt.clipboard:append("unnamedplus")
+-- Transparency
+vim.g.neovide_opacity = 0.95
+vim.g.neovide_normal_opacity = 0.95
+
+-- Padding (removes terminal cramped feel)
+vim.g.neovide_padding_top = 10
+vim.g.neovide_padding_bottom = 10
+vim.g.neovide_padding_left = 10
+vim.g.neovide_padding_right = 10
+
+-- Smooth cursor
+vim.g.neovide_cursor_animation_length = 0.05
+
+-- Scroll smoothness
+vim.g.neovide_scroll_animation_length = 0.2
+vim.keymap.set("n", "<C-v>", '"+p', { desc = "Paste from system clipboard" })
+vim.keymap.set("v", "<C-v>", '"+p', { desc = "Paste from system clipboard" })
+vim.keymap.set("i", "<C-v>", "<C-r>+", { desc = "Paste from system clipboard" })
+vim.keymap.set("c", "<C-v>", "<C-r>+", { desc = "Paste from system clipboard" })
+
 -- ── 6. Void Violet Theme ──────────────────────────────────────────────────────
 --
 -- Palette
@@ -123,37 +159,37 @@ local function apply_theme_overrides()
 	local hl = vim.api.nvim_set_hl
 
 	-- ── Palette ──────────────────────────────────────────────────────────────
-	local bg = "#151515"
-	local bg1 = "#1c1c1c"
-	local bg2 = "#201530"
-	local bg3 = "#2b1d45"
-	local bg4 = "#180f28"
-	local brd = "#4a2d6e"
-	local sel = "#3a2260"
+	local bg = "#0f1116"
+	local bg1 = "#151a22"
+	local bg2 = "#171d27"
+	local bg3 = "#1e2733"
+	local bg4 = "#11151d"
+	local brd = "#2b3545"
+	local sel = "#24314a"
 
-	local fg = "#e8dff5"
-	local fg2 = "#c8b4e8"
-	local fg3 = "#8a70aa"
-	local cmt = "#6b5080"
+	local fg = "#e6edf3"
+	local fg2 = "#b7c0cf"
+	local fg3 = "#7a8798"
+	local cmt = "#5f6c7f"
 
-	local violet = "#c39bd3"
-	local purple = "#b388ff"
-	local lavender = "#d4b8ff"
-	local plum = "#c080d8"
+	local violet = "#4c6a92"
+	local purple = "#6f7bd1"
+	local lavender = "#9aa7ff"
+	local plum = "#8f7dc7"
 
-	local pink = "#f0a8c8"
-	local rose = "#f5b8d0"
-	local magenta = "#e888c8"
+	local pink = "#d28fb2"
+	local rose = "#e0a0b7"
+	local magenta = "#c98bdc"
 
-	local red = "#e88888"
-	local crimson = "#d45e5e"
-	local salmon = "#f0a090"
+	local red = "#e06c75"
+	local crimson = "#bf616a"
+	local salmon = "#d68f7a"
 
-	local teal = "#88c8d8"
-	local sage = "#9dc89c"
-	local amber = "#d8b888"
-	local gold = "#e8d088"
-	local sky = "#a8c8e8"
+	local teal = "#5fb3b3"
+	local sage = "#8fbf8f"
+	local amber = "#d7a65f"
+	local gold = "#d8b26b"
+	local sky = "#8fb3d9"
 
 	-- ╭──────────────────────────────────────────────────────────────────────╮
 	-- │  CORE VIM UI                                                          │
@@ -163,8 +199,8 @@ local function apply_theme_overrides()
 	hl(0, "NormalNC", { fg = fg2, bg = bg }) -- inactive windows
 	hl(0, "NormalFloat", { fg = fg, bg = bg2 })
 	hl(0, "FloatBorder", { fg = brd, bg = bg2 })
-	hl(0, "FloatShadow", { bg = "#0d0a14", blend = 60 })
-	hl(0, "FloatShadowThrough", { bg = "#0d0a14", blend = 40 })
+	hl(0, "FloatShadow", { bg = "#0a0d12", blend = 60 })
+	hl(0, "FloatShadowThrough", { bg = "#0a0d12", blend = 40 })
 
 	hl(0, "WinSeparator", { fg = brd, bg = bg })
 	hl(0, "VertSplit", { fg = brd, bg = bg })
@@ -239,10 +275,10 @@ local function apply_theme_overrides()
 	hl(0, "SpellLocal", { fg = teal, undercurl = true, sp = teal })
 
 	-- Diff
-	hl(0, "DiffAdd", { fg = sage, bg = "#0d1f0d" })
-	hl(0, "DiffChange", { fg = amber, bg = "#1f180d" })
-	hl(0, "DiffDelete", { fg = red, bg = "#1f0d0d" })
-	hl(0, "DiffText", { fg = gold, bg = "#2a200a", bold = true })
+	hl(0, "DiffAdd", { fg = sage, bg = "#101a14" })
+	hl(0, "DiffChange", { fg = amber, bg = "#1a1711" })
+	hl(0, "DiffDelete", { fg = red, bg = "#1a1212" })
+	hl(0, "DiffText", { fg = gold, bg = "#1f1d14", bold = true })
 	hl(0, "Added", { fg = sage })
 	hl(0, "Changed", { fg = amber })
 	hl(0, "Removed", { fg = red })
@@ -519,9 +555,9 @@ local function apply_theme_overrides()
 	hl(0, "GitSignsAddNr", { fg = sage })
 	hl(0, "GitSignsChangeNr", { fg = amber })
 	hl(0, "GitSignsDeleteNr", { fg = red })
-	hl(0, "GitSignsAddLn", { bg = "#0d1f0d" })
-	hl(0, "GitSignsChangeLn", { bg = "#1f180d" })
-	hl(0, "GitSignsDeleteLn", { bg = "#1f0d0d" })
+	hl(0, "GitSignsAddLn", { bg = "#101a14" })
+	hl(0, "GitSignsChangeLn", { bg = "#1a1711" })
+	hl(0, "GitSignsDeleteLn", { bg = "#1a1212" })
 	hl(0, "GitSignsCurrentLineBlame", { fg = cmt, italic = true })
 
 	-- ╭──────────────────────────────────────────────────────────────────────╮
@@ -857,13 +893,13 @@ local function apply_theme_overrides()
 	-- │  INDENT BLANKLINE                                                     │
 	-- ╰──────────────────────────────────────────────────────────────────────╯
 
-	hl(0, "IblIndent", { fg = "#2a1d38" })
-	hl(0, "IblScope", { fg = "#5a3a7a" })
-	hl(0, "IblWhitespace", { fg = "#1c1520" })
-	hl(0, "IndentBlanklineChar", { fg = "#2a1d38" })
-	hl(0, "IndentBlanklineContextChar", { fg = "#5a3a7a" })
-	hl(0, "IndentBlanklineSpaceChar", { fg = "#1c1520" })
-	hl(0, "IndentBlanklineSpaceCharBlankline", { fg = "#1c1520" })
+	hl(0, "IblIndent", { fg = "#223047" })
+	hl(0, "IblScope", { fg = "#40506b" })
+	hl(0, "IblWhitespace", { fg = "#11161f" })
+	hl(0, "IndentBlanklineChar", { fg = "#223047" })
+	hl(0, "IndentBlanklineContextChar", { fg = "#40506b" })
+	hl(0, "IndentBlanklineSpaceChar", { fg = "#11161f" })
+	hl(0, "IndentBlanklineSpaceCharBlankline", { fg = "#11161f" })
 
 	-- ╭──────────────────────────────────────────────────────────────────────╮
 	-- │  FLASH                                                                │
@@ -885,8 +921,8 @@ local function apply_theme_overrides()
 	hl(0, "DapBreakpointCondition", { fg = amber, bold = true })
 	hl(0, "DapBreakpointRejected", { fg = fg3 })
 	hl(0, "DapLogPoint", { fg = teal })
-	hl(0, "DapStopped", { fg = sage, bg = "#0d1f0d", bold = true })
-	hl(0, "DapStoppedLine", { bg = "#0d1f0d" })
+	hl(0, "DapStopped", { fg = sage, bg = "#101a14", bold = true })
+	hl(0, "DapStoppedLine", { bg = "#101a14" })
 
 	-- DAP UI
 	hl(0, "DapUIScope", { fg = teal, bold = true })
@@ -926,7 +962,7 @@ local function apply_theme_overrides()
 	hl(0, "DapUIStepOutNC", { fg = fg3 })
 
 	-- ╭──────────────────────────────────────────────────────────────────────╮
-	-- │  Fidget                                                               │
+	-- │  FIDGET                                                               │
 	-- ╰──────────────────────────────────────────────────────────────────────╯
 
 	hl(0, "FidgetTitle", { fg = purple, bold = true })
@@ -1116,9 +1152,16 @@ require("lazy").setup({
 			end,
 		},
 
-		--------------------------------------------------------------------------
-		-- Statusline
-		--------------------------------------------------------------------------
+		{
+			"mg979/vim-visual-multi",
+			branch = "master",
+			init = function()
+				-- Optional: Configure it to feel more like your setup
+				vim.g.VM_leader = "\\" -- Use backslash as the internal VM leader
+				vim.g.VM_theme = "purple" -- A theme that might fit your Void Violet vibe
+			end,
+		},
+
 		{
 			"echasnovski/mini.nvim",
 			version = false,
@@ -1403,21 +1446,10 @@ require("lazy").setup({
 
 		{
 			"folke/twilight.nvim",
-			-- Remove lazy = false, let it lazy load when you open a file
+			cmd = { "Twilight", "TwilightEnable", "TwilightDisable" },
 			config = function()
 				require("twilight").setup()
-
-				-- Set the keymap immediately
 				vim.keymap.set("n", "<leader>t", "<cmd>Twilight<CR>", { desc = "Toggle focus mode" })
-
-				-- Auto-enable ONLY when a real file is loaded, not on the empty start screen
-				vim.api.nvim_create_autocmd("BufReadPost", {
-					callback = function()
-						if vim.bo.buftype == "" then
-							pcall(vim.cmd, "TwilightEnable")
-						end
-					end,
-				})
 			end,
 		},
 
@@ -1651,39 +1683,18 @@ require("lazy").setup({
 		-- Overseer
 		--------------------------------------------------------------------------
 		{
-			"stevearc/overseer.nvim",
-			cmd = { "OverseerRun", "OverseerToggle", "OverseerOpen" },
-			config = function()
-				require("overseer").setup({})
-				vim.keymap.set("n", "<leader>rr", "<cmd>OverseerRun<CR>", { desc = "Run task" })
-				vim.keymap.set("n", "<leader>rt", "<cmd>OverseerToggle<CR>", { desc = "Toggle task list" })
-			end,
+		  "stevearc/overseer.nvim",
+		  keys = {
+		    { "<leader>rr", "<cmd>OverseerRun<CR>", desc = "Run task" },
+		    { "<leader>rt", "<cmd>OverseerToggle<CR>", desc = "Toggle task list" },
+		  },
+		  opts = {
+		    templates = { "builtin" },
+		    strategy = "terminal",
+		  },
 		},
-	}, -- end spec
-
-	defaults = { lazy = true },
-	checker = { enabled = false, notify = false },
-	change_detection = { enabled = true, notify = false },
-	install = { missing = true, colorscheme = { "dracula" } },
-
-	performance = {
-		cache = { enabled = true },
-		rtp = {
-			reset = true,
-			disabled_plugins = {
-				"gzip",
-				"tarPlugin",
-				"tohtml",
-				"tutor",
-				"zipPlugin",
-				"netrwPlugin",
-			},
-		},
-	},
-
-	ui = { border = "single" },
+	},	
 })
-
 -- ── 10. Final theme pass ──────────────────────────────────────────────────────
 vim.schedule(function()
 	apply_theme_overrides()
